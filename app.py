@@ -8,6 +8,22 @@ load_dotenv()
 
 app = Flask(__name__)
 
+DB_NAME = "recipes.db"
+
+def init_db():#function to initialize the database and create the saved_recipes table if it doesn't exist
+    conn = sqlite3.connect(DB_NAME)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS saved_recipes (
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            image TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
 SPOONACULAR_KEY = os.environ.get("SPOONACULAR_KEY")
 
 def suggest_drink(temperature):
@@ -23,6 +39,41 @@ def suggest_drink(temperature):
 @app.route("/")
 def home():
     return render_template("index.html")
+
+@app.route("/api/saved", methods=["POST"])
+def save_recipe():
+    recipe = request.get_json()
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.execute(
+        "INSERT OR REPLACE INTO saved_recipes (id, title, image) VALUES (?, ?, ?)",
+        (recipe["id"], recipe["title"], recipe["image"])
+    )
+    conn.commit()
+    conn.close()
+
+    return {"status": "saved"}
+
+@app.route("/api/saved", methods=["GET"])
+def list_saved():
+    conn = sqlite3.connect(DB_NAME)
+    rows = conn.execute("SELECT id, title, image FROM saved_recipes").fetchall()
+    conn.close()
+
+    saved = []
+    for row in rows:
+        saved.append({"id": row[0], "title": row[1], "image": row[2]})
+
+    return {"recipes": saved}
+
+@app.route("/api/saved/<int:recipe_id>", methods=["DELETE"])
+def delete_saved(recipe_id):
+    conn = sqlite3.connect(DB_NAME)
+    conn.execute("DELETE FROM saved_recipes WHERE id = ?", (recipe_id,))
+    conn.commit()
+    conn.close()
+
+    return {"status": "deleted"}
 
 @app.route("/api/weather")
 def weather():

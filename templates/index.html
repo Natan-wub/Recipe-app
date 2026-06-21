@@ -163,7 +163,10 @@
             const data = await response.json();
 
             currentRecipe = { id: id, title: data.title, image: data.image };
-            const alreadySaved = getSaved().some(function (r) { return r.id === id; });
+            /* this line is for localStorage version — now replaced with server-side storage, but keeping this here in case you want to switch back or see how it was done without a backend.
+            const alreadySaved = getSaved().some(function (r) { return r.id === id; });*/
+            const saved = await getSaved();
+            const alreadySaved = saved.some(function (r) { return r.id === id; });
 
             let html = "<h2>" + data.title + "</h2>";
             html += "<img src='" + data.image + "' class='modal-img'>";
@@ -238,6 +241,7 @@
             }
         }
 
+        /*this block is for localStorage version — now replaced with server-side storage, but keeping this here in case you want to switch back or see how it was done without a backend.
         let currentRecipe = null;
 
         function getSaved() {
@@ -289,7 +293,54 @@
             }
         }
 
-        renderSaved();
+        renderSaved();*/ 
+
+        let currentRecipe = null;
+
+        async function getSaved() {
+            const response = await fetch("/api/saved");
+            const data = await response.json();
+            return data.recipes;
+        }
+
+        async function saveCurrentRecipe() {
+            if (!currentRecipe) return;
+            await fetch("/api/saved", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(currentRecipe)
+            });
+            renderSaved();
+            document.getElementById("save-btn").textContent = "✓ Saved";
+        }
+
+        async function removeRecipe(event, id) {
+            event.stopPropagation();
+            await fetch("/api/saved/" + id, { method: "DELETE" });
+            renderSaved();
+        }
+
+        async function renderSaved() {
+            const savedDiv = document.getElementById("saved");
+            const saved = await getSaved();
+
+            if (saved.length === 0) {
+                savedDiv.innerHTML = "<p class='message'>No saved recipes yet — open a recipe and tap Save.</p>";
+                return;
+            }
+
+            savedDiv.innerHTML = "";
+            for (const recipe of saved) {
+                savedDiv.innerHTML +=
+                    "<div class='recipe' onclick='showRecipe(" + recipe.id + ")'>" +
+                    "<img src='" + recipe.image + "'>" +
+                    "<div class='recipe-body'>" +
+                    "<p class='recipe-title'>" + recipe.title + "</p>" +
+                    "<button class='remove-btn' onclick='removeRecipe(event, " + recipe.id + ")'>Remove</button>" +
+                    "</div>" +
+                    "</div>";
+            }
+        }
     </script>
 </body>
 </html>

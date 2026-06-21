@@ -41,7 +41,7 @@
         }
         .drink-emoji { font-size: 46px; line-height: 1; }
         .drink-card p { margin: 0; font-size: 17px; text-align: left; }
-
+        
         #modal {
             display: none; position: fixed; inset: 0; background: rgba(40,30,20,0.55);
             justify-content: center; align-items: flex-start; padding: 40px 16px; overflow-y: auto; z-index: 10;
@@ -72,4 +72,22 @@
             font-size: 13px; font-weight: 500; padding: 6px 12px;
         }
         .remove-btn:hover { background: #e3d6c4; }
+
+        .drink-recipe {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 20px 28px;
+    max-width: 420px;
+    margin: 16px auto 0;
+    text-align: left;
+}
+.drink-recipe h3 {
+    font-family: "Fraunces", serif;
+    font-size: 18px;
+    margin: 16px 0 6px;
+}
+.drink-recipe h3:first-child { margin-top: 0; }
+.drink-recipe ul, .drink-recipe ol { padding-left: 20px; margin: 0; }
+.drink-recipe li { margin-bottom: 6px; }
     

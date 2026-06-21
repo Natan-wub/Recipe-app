@@ -22,19 +22,55 @@ def init_db():#function to initialize the database and create the saved_recipes 
     conn.commit()
     conn.close()
 
-init_db()
+init_db()#initialize the database when the application starts
 
 SPOONACULAR_KEY = os.environ.get("SPOONACULAR_KEY")
 
 def suggest_drink(temperature):
     if temperature >= 28:
-        return {"name": "a tall glass of iced lemonade", "emoji": "🍋"}
+        return {
+            "name": "Iced lemonade",
+            "emoji": "🍋",
+            "ingredients": ["1 cup cold water", "Juice of 1 lemon", "2 tbsp sugar", "A handful of ice"],
+            "steps": [
+                "Stir the lemon juice and sugar together until the sugar dissolves.",
+                "Add the cold water and mix well.",
+                "Drop in the ice and serve."
+            ]
+        }
     elif temperature >= 18:
-        return {"name": "an iced coffee or a fruit smoothie", "emoji": "🥤"}
+        return {
+            "name": "Iced coffee",
+            "emoji": "🥤",
+            "ingredients": ["1 cup brewed coffee, cooled", "1/2 cup milk", "1 tsp sugar (optional)", "A handful of ice"],
+            "steps": [
+                "Brew a cup of coffee and let it cool.",
+                "Fill a glass with ice.",
+                "Pour the coffee over the ice, add milk and sugar, and stir."
+            ]
+        }
     elif temperature >= 10:
-        return {"name": "a warm cup of tea", "emoji": "🍵"}
+        return {
+            "name": "Hot tea",
+            "emoji": "🍵",
+            "ingredients": ["1 cup hot water", "1 tea bag", "Honey or sugar to taste"],
+            "steps": [
+                "Boil the water and pour it over the tea bag in a mug.",
+                "Let it steep for 3 to 5 minutes, then remove the tea bag.",
+                "Sweeten with honey or sugar if you like."
+            ]
+        }
     else:
-        return {"name": "a hot chocolate", "emoji": "☕"}
+        return {
+            "name": "Hot chocolate",
+            "emoji": "☕",
+            "ingredients": ["1 cup milk", "2 tbsp cocoa powder", "2 tbsp sugar", "A pinch of salt"],
+            "steps": [
+                "Warm the milk in a small pot over medium heat — don't let it boil.",
+                "Whisk in the cocoa, sugar, and salt until smooth.",
+                "Pour into a mug and enjoy."
+            ]
+        }
 
 @app.route("/")
 def home():
@@ -76,6 +112,7 @@ def delete_saved(recipe_id):
     return {"status": "deleted"}
 
 @app.route("/api/weather")
+@app.route("/api/weather")
 def weather():
     latitude = request.args.get("lat", 9.03)
     longitude = request.args.get("lon", 38.74)
@@ -95,8 +132,10 @@ def weather():
 
     return {
         "temperature": temperature,
-        "drink": drink["name"],
-        "emoji": drink["emoji"]
+        "name": drink["name"],
+        "emoji": drink["emoji"],
+        "ingredients": drink["ingredients"],
+        "steps": drink["steps"]
     }
 @app.route("/api/recipes")
 def recipes():

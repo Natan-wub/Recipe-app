@@ -24,9 +24,11 @@ def init_db():
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS saved_recipes (
-            id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            recipe_id INTEGER NOT NULL,
             title TEXT,
-            image TEXT
+            image TEXT,
+            PRIMARY KEY (user_id, recipe_id)
         )
     """)
     cur.execute("""
@@ -167,25 +169,31 @@ def home():
 
 @app.route("/api/saved", methods=["POST"])
 def save_recipe():
-    recipe = request.get_json()
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"error": "Please log in to save recipes."}, 401
 
+    recipe = request.get_json()
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO saved_recipes (id, title, image) VALUES (%s, %s, %s) ON CONFLICT (id) DO NOTHING",
-        (recipe["id"], recipe["title"], recipe["image"])
+        "INSERT INTO saved_recipes (user_id, recipe_id, title, image) VALUES (%s, %s, %s, %s) ON CONFLICT (user_id, recipe_id) DO NOTHING",
+        (user_id, recipe["id"], recipe["title"], recipe["image"])
     )
     conn.commit()
     cur.close()
     conn.close()
-
     return {"status": "saved"}
 
 @app.route("/api/saved", methods=["GET"])
 def list_saved():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"recipes": []}
+
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT id, title, image FROM saved_recipes")
+    cur.execute("SELECT recipe_id, title, image FROM saved_recipes WHERE user_id = %s", (user_id,))
     rows = cur.fetchall()
     cur.close()
     conn.close()
@@ -193,22 +201,21 @@ def list_saved():
     saved = []
     for row in rows:
         saved.append({"id": row[0], "title": row[1], "image": row[2]})
-
     return {"recipes": saved}
 
 @app.route("/api/saved/<int:recipe_id>", methods=["DELETE"])
 def delete_saved(recipe_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"error": "Please log in."}, 401
+
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("DELETE FROM saved_recipes WHERE id = %s", (recipe_id,))
+    cur.execute("DELETE FROM saved_recipes WHERE user_id = %s AND recipe_id = %s", (user_id, recipe_id))
     conn.commit()
     cur.close()
     conn.close()
-
     return {"status": "deleted"}
-
-@app.route("/api/weather")
-@app.route("/api/weather")
 def weather():
     latitude = request.args.get("lat", 9.03)
     longitude = request.args.get("lon", 38.74)

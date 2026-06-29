@@ -215,15 +215,19 @@ async function findRecipes() {
 
         async function saveCurrentRecipe() {
             if (!currentRecipe) return;
-            await fetch("/api/saved", {
+            const response = await fetch("/api/saved", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(currentRecipe)
             });
+            const data = await response.json();
+            if (data.error) {
+                document.getElementById("save-btn").textContent = data.error;
+                return;
+            }
             renderSaved();
             document.getElementById("save-btn").textContent = "✓ Saved";
         }
-
         async function removeRecipe(event, id) {
             event.stopPropagation();
             await fetch("/api/saved/" + id, { method: "DELETE" });
@@ -288,6 +292,7 @@ async function findRecipes() {
                 msg.textContent = data.error;
             } else {
                 checkAuth();
+                renderSaved();
             }
         }
 
@@ -297,6 +302,7 @@ async function findRecipes() {
         async function logout() {
             await fetch("/api/logout", { method: "POST" });
             checkAuth();
+            renderSaved();
         }
 
         checkAuth();

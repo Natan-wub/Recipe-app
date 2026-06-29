@@ -91,3 +91,16 @@
 .drink-recipe ul, .drink-recipe ol { padding-left: 20px; margin: 0; }
 .drink-recipe li { margin-bottom: 6px; }
     
+
+#auth-bar { text-align: center; margin-bottom: 28px; }
+.auth-forms input {
+    width: 150px; padding: 9px 12px; font-size: 14px; margin: 0 4px;
+    border: 1px solid #e0d8cc; border-radius: 8px;
+}
+.auth-forms button, .auth-logged-in button { padding: 9px 16px; font-size: 14px; margin-left: 4px; }
+#auth-msg { display: block; margin-top: 8px; color: #c1572f; font-size: 14px; }
+
+select {
+    font-size: 16px; padding: 12px 16px;
+    border: 1px solid #e0d8cc; border-radius: 10px; background: #fff; cursor: pointer;
+}

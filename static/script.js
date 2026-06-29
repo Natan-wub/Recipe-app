@@ -1,5 +1,6 @@
- async function findRecipes() {
+async function findRecipes() {
             const input = document.getElementById("ingredients").value;
+            const maxCalories = document.getElementById("maxCalories").value;
             const recipesDiv = document.getElementById("recipes");
 
             if (input.trim() === "") {
@@ -9,8 +10,13 @@
 
             recipesDiv.innerHTML = "<p class='message'>Searching...</p>";
 
+            let url = "/api/recipes?ingredients=" + encodeURIComponent(input);
+            if (maxCalories) {
+                url += "&maxCalories=" + maxCalories;
+            }
+
             try {
-                const response = await fetch("/api/recipes?ingredients=" + encodeURIComponent(input));
+                const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.error) {
@@ -18,18 +24,25 @@
                     return;
                 }
                 if (data.recipes.length === 0) {
-                    recipesDiv.innerHTML = "<p class='message'>No recipes found. Try different ingredients.</p>";
+                    recipesDiv.innerHTML = "<p class='message'>No recipes found. Try different ingredients or a higher calorie limit.</p>";
                     return;
                 }
 
                 recipesDiv.innerHTML = "";
                 for (const recipe of data.recipes) {
+                    let meta = "";
+                    if (recipe.calories !== null && recipe.calories !== undefined) {
+                        meta = "<p class='recipe-meta'>" + recipe.calories + " cal per serving</p>";
+                    } else if (recipe.used !== undefined) {
+                        meta = "<p class='recipe-meta'>Uses " + recipe.used + " of yours · " + recipe.missed + " more needed</p>";
+                    }
+
                     recipesDiv.innerHTML +=
                         "<div class='recipe' onclick='showRecipe(" + recipe.id + ")'>" +
                         "<img src='" + recipe.image + "'>" +
                         "<div class='recipe-body'>" +
                         "<p class='recipe-title'>" + recipe.title + "</p>" +
-                        "<p class='recipe-meta'>Uses " + recipe.used + " of yours · " + recipe.missed + " more needed</p>" +
+                        meta +
                         "</div>" +
                         "</div>";
                 }
@@ -37,7 +50,6 @@
                 recipesDiv.innerHTML = "<p class='message'>Couldn't reach the server — check the terminal.</p>";
             }
         }
-
        async function showRecipe(id) {
             const modal = document.getElementById("modal");
             const content = document.getElementById("modal-content");
@@ -239,3 +251,53 @@
                     "</div>";
             }
         }
+
+        async function checkAuth() {
+            const response = await fetch("/api/me");
+            const data = await response.json();
+            const bar = document.getElementById("auth-bar");
+
+            if (data.user) {
+                bar.innerHTML =
+                    "<div class='auth-logged-in'>Logged in as <strong>" + data.user + "</strong>" +
+                    "<button onclick='logout()'>Log out</button></div>";
+            } else {
+                bar.innerHTML =
+                    "<div class='auth-forms'>" +
+                    "<input id='auth-username' placeholder='username'>" +
+                    "<input id='auth-password' type='password' placeholder='password'>" +
+                    "<button onclick='login()'>Log in</button>" +
+                    "<button onclick='signup()'>Sign up</button>" +
+                    "<span id='auth-msg'></span></div>";
+            }
+        }
+
+        async function authRequest(url) {
+            const username = document.getElementById("auth-username").value;
+            const password = document.getElementById("auth-password").value;
+            const msg = document.getElementById("auth-msg");
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                msg.textContent = data.error;
+            } else {
+                checkAuth();
+            }
+        }
+
+        function signup() { authRequest("/api/signup"); }
+        function login() { authRequest("/api/login"); }
+
+        async function logout() {
+            await fetch("/api/logout", { method: "POST" });
+            checkAuth();
+        }
+
+        checkAuth();
+        renderSaved();

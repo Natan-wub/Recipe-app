@@ -11,11 +11,18 @@
     <h1>Pantry</h1>
     <p class="subtitle">Tell me what you've got — I'll find something to cook.</p>
 
-    <div class="search">
+<div id="auth-bar"></div>
+    
+<div class="search">
         <input id="ingredients" placeholder="eggs, tomato, cheese">
+        <select id="maxCalories">
+            <option value="">Any calories</option>
+            <option value="300">Under 300 cal</option>
+            <option value="500">Under 500 cal</option>
+            <option value="800">Under 800 cal</option>
+        </select>
         <button onclick="findRecipes()">Find recipes</button>
     </div>
-
     <div id="recipes"></div>
 
     <hr class="divider">
